@@ -1595,9 +1595,22 @@ impl Process {
         Ok(file.inner())
     }
 
+    pub fn clear_refs(&self, nr: u32) -> ProcResult<()> {
+        let mut file =
+            FileWrapper::open_at_with_flags(&self.root, &self.fd, "clear_refs", OFlags::WRONLY | OFlags::CLOEXEC)?;
+        wrap_io_error!(self.root.join("clear_refs"), write!(&mut file, "{}", nr))?;
+        Ok(())
+    }
+
     /// Returns a file which is part of the process proc structure
     pub fn open_relative(&self, path: &str) -> ProcResult<File> {
         let file = FileWrapper::open_at(&self.root, &self.fd, path)?;
+        Ok(file.inner())
+    }
+
+    /// Returns a file which is part of the process proc structure with specified open flags
+    pub fn open_relative_with_flags(&self, path: &str, flags: OFlags) -> ProcResult<File> {
+        let file = FileWrapper::open_at_with_flags(&self.root, &self.fd, path, flags)?;
         Ok(file.inner())
     }
 }

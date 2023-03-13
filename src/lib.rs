@@ -50,6 +50,7 @@ use bitflags::bitflags;
 use lazy_static::lazy_static;
 
 use rustix::fd::AsFd;
+use rustix::fs::OFlags;
 use std::fmt;
 use std::fs::{File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Read, Seek, Write};
@@ -385,12 +386,20 @@ impl FileWrapper {
         P: AsRef<Path>,
         Q: AsRef<Path>,
     {
-        use rustix::fs::{Mode, OFlags};
+        Self::open_at_with_flags(root, dirfd, path, OFlags::RDONLY | OFlags::CLOEXEC)
+    }
+
+    fn open_at_with_flags<P, Q, Fd: AsFd>(root: P, dirfd: Fd, path: Q, flags: OFlags) -> Result<FileWrapper, io::Error>
+    where
+        P: AsRef<Path>,
+        Q: AsRef<Path>,
+    {
+        use rustix::fs::Mode;
 
         let p = root.as_ref().join(path.as_ref());
         let fd = wrap_io_error!(
             p,
-            rustix::fs::openat(dirfd, path.as_ref(), OFlags::RDONLY | OFlags::CLOEXEC, Mode::empty())
+            rustix::fs::openat(dirfd, path.as_ref(), flags, Mode::empty())
         )?;
         Ok(FileWrapper {
             inner: File::from(fd),
@@ -422,6 +431,16 @@ impl Read for FileWrapper {
 impl Seek for FileWrapper {
     fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
         wrap_io_error!(self.path, self.inner.seek(pos))
+    }
+}
+
+impl Write for FileWrapper {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        wrap_io_error!(self.path, self.inner.write(buf))
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        wrap_io_error!(self.path, self.inner.flush())
     }
 }
 

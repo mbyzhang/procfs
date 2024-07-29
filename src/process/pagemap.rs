@@ -34,6 +34,8 @@ bitflags! {
         const SOFT_DIRTY = 1 << 55;
         /// Page is exclusively mapped
         const MMAP_EXCLUSIVE = 1 << 56;
+        /// Page is userfaultfd write-protected
+        const UFFD_WP = 1 << 57;
         /// Page is file-page or shared-anon
         const FILE = 1 << 61;
         /// Page is swapped
@@ -67,6 +69,8 @@ bitflags! {
         const SOFT_DIRTY = 1 << 55;
         /// Page is exclusively mapped
         const MMAP_EXCLUSIVE = 1 << 56;
+        /// Page is userfaultfd write-protected
+        const UFFD_WP = 1 << 57;
         /// Page is file-page or shared-anon
         const FILE = 1 << 61;
         /// Page is swapped
